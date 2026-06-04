@@ -1,7 +1,5 @@
 import type { Conversation, Message, User } from "../types/chat";
 
-import { mockConversations, mockMessages, mockUsers } from "./mockData";
-
 export interface LoginRequest {
   userId: string;
 }
@@ -48,115 +46,89 @@ export interface ConversationApiClient {
   ): Promise<CreateMessageResponse>;
 }
 
-abstract class BaseMockApiClient {
-  protected static readonly MOCK_DELAY_MS = 500;
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
-  protected delay(ms: number = BaseMockApiClient.MOCK_DELAY_MS): Promise<void> {
-    return new Promise((resolve) => {
-      window.setTimeout(resolve, ms);
+let authToken: string | null = null;
+
+export function setAuthToken(token: string | null): void {
+  authToken = token;
+}
+
+interface ApiErrorBody {
+  error?: {
+    code?: string;
+    message?: string;
+    details?: unknown;
+  };
+}
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const headers = new Headers(init?.headers);
+  if (init?.body !== undefined && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+  if (authToken) {
+    headers.set("Authorization", `Bearer ${authToken}`);
+  }
+
+  const response = await fetch(`${API_BASE_URL}${path}`, { ...init, headers });
+
+  const rawBody = await response.text();
+  const parsedBody: unknown = rawBody ? JSON.parse(rawBody) : null;
+
+  if (!response.ok) {
+    const errorBody = parsedBody as ApiErrorBody | null;
+    const message =
+      errorBody?.error?.message ?? `Request failed (${response.status})`;
+    throw new Error(message);
+  }
+
+  return parsedBody as T;
+}
+
+class HttpAuthApiClient implements AuthApiClient {
+  async login(loginRequest: LoginRequest): Promise<LoginResponse> {
+    const response = await request<LoginResponse>("/auth/login", {
+      method: "POST",
+      body: JSON.stringify(loginRequest),
     });
+    setAuthToken(response.token);
+    return response;
   }
 }
 
-export class MockedAuthApiClient
-  extends BaseMockApiClient
-  implements AuthApiClient
-{
-  async login(request: LoginRequest): Promise<LoginResponse> {
-    await this.delay();
-
-    const user = mockUsers.find((mockUser) => mockUser.id === request.userId);
-
-    if (!user) {
-      throw new Error("User not found");
-    }
-
-    return {
-      token: `mock-token-${user.id}`,
-      user,
-    };
-  }
-}
-
-export class MockedConversationApiClient
-  extends BaseMockApiClient
-  implements ConversationApiClient
-{
-  private static readonly DEFAULT_MESSAGES_LIMIT = 20;
-  private static readonly SHOULD_FAIL_SEND_RATE = 0.25;
-
+class HttpConversationApiClient implements ConversationApiClient {
   async getConversations(
-    currentUserId: string
+    _currentUserId: string
   ): Promise<GetConversationsResponse> {
-    await this.delay();
-
-    const conversations = mockConversations
-      .filter((conversation) =>
-        conversation.participantIds.includes(currentUserId)
-      )
-      .sort(
-        (a, b) =>
-          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-      );
-
-    return { conversations };
+    return request<GetConversationsResponse>("/conversations");
   }
 
   async getMessages(
     conversationId: string,
     cursor?: string
   ): Promise<GetMessagesResponse> {
-    await this.delay();
-
-    const allMessages = mockMessages
-      .filter((message) => message.conversationId === conversationId)
-      .sort(
-        (a, b) =>
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-      );
-
-    const startIndex = cursor ? Number(cursor) : 0;
-    const endIndex =
-      startIndex + MockedConversationApiClient.DEFAULT_MESSAGES_LIMIT;
-    const messages = allMessages.slice(startIndex, endIndex);
-
-    const nextCursor = endIndex < allMessages.length ? String(endIndex) : null;
-
-    return {
-      messages,
-      nextCursor,
-    };
+    const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
+    return request<GetMessagesResponse>(
+      `/conversations/${encodeURIComponent(conversationId)}/messages${query}`
+    );
   }
 
   async sendMessage(
     conversationId: string,
-    senderId: string,
-    request: CreateMessageRequest
+    _senderId: string,
+    createMessageRequest: CreateMessageRequest
   ): Promise<CreateMessageResponse> {
-    await this.delay();
-
-    const shouldFail =
-      Math.random() < MockedConversationApiClient.SHOULD_FAIL_SEND_RATE;
-
-    if (shouldFail) {
-      throw new Error("Failed to send message");
-    }
-
-    const now = new Date().toISOString();
-
-    return {
-      message: {
-        id: crypto.randomUUID(),
-        conversationId,
-        senderId,
-        body: request.body,
-        createdAt: now,
-        status: "sent",
-      },
-    };
+    return request<CreateMessageResponse>(
+      `/conversations/${encodeURIComponent(conversationId)}/messages`,
+      {
+        method: "POST",
+        body: JSON.stringify(createMessageRequest),
+      }
+    );
   }
 }
 
-export const authApiClient: AuthApiClient = new MockedAuthApiClient();
+export const authApiClient: AuthApiClient = new HttpAuthApiClient();
 export const conversationApiClient: ConversationApiClient =
-  new MockedConversationApiClient();
+  new HttpConversationApiClient();

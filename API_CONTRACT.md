@@ -129,10 +129,21 @@ interface CreateMessageResponse {
 ### ApiErrorResponse
 
 ```ts
-interface ApiErrorResponse {
+interface ApiError {
+  code: string;
   message: string;
+  details?: unknown;
+}
+
+interface ApiErrorResponse {
+  error: ApiError;
 }
 ```
+
+> **Changed in Week 3 (real backend):** the error shape moved from a flat
+> `{ message }` to a nested `{ error: { code, message, details? } }`. Clients should
+> read `error.message` for display and may switch on `error.code`. `details` is present
+> only on validation errors (it carries the raw Zod issues).
 
 ---
 
@@ -361,26 +372,70 @@ interface CreateMessageResponse {
 ### Notes / semantics
 
 - On success the returned message `status` MUST be `"sent"`. (`pending` is a frontend-only state for optimistic messages and is never returned by the API.)
-- The endpoint is allowed to fail intermittently so the frontend's optimistic-send + rollback flow can be exercised. The mock fails ~25% of sends; on failure it returns an `ApiErrorResponse`.
+- On failure the endpoint returns an `ApiErrorResponse` (e.g. `403` if the sender is not a participant, `404` if the conversation is unknown, `400` if the body is empty). The Week 2 mock additionally failed ~25% of sends on purpose (`SHOULD_FAIL_SEND_RATE`) to exercise the optimistic-send + rollback flow; the real backend does not do this.
 
 ---
 
 ## Errors
 
-Failed API calls return this shape:
+Failed API calls return this shape (the HTTP status carries the category; the body
+carries a machine-readable `code` and a human-readable `message`):
 
 ```ts
 interface ApiErrorResponse {
-  message: string;
+  error: {
+    code: string;
+    message: string;
+    details?: unknown;
+  };
 }
 ```
 
 ### Example error response
 
+`404 Not Found`:
+
 ```json
 {
-  "message": "Failed to send message"
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Conversation not found: zzz"
+  }
 }
 ```
+
+`400 Bad Request` (validation — note the `details`):
+
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid request body",
+    "details": [
+      {
+        "code": "too_small",
+        "path": ["body"],
+        "message": "Too small: expected string to have >=1 characters"
+      }
+    ]
+  }
+}
+```
+
+### Status codes and `code` values
+
+| HTTP | `error.code` | When |
+|---|---|---|
+| 400 | `VALIDATION_ERROR` | Body or query params fail validation (`details` carries the issues). |
+| 401 | `UNAUTHORIZED` | Missing/malformed/invalid `Authorization` token. |
+| 403 | `FORBIDDEN` | Authenticated, but not a participant in the target conversation. |
+| 404 | `NOT_FOUND` | Unknown user, conversation, or route. |
+| 409 | `CONFLICT` | Creating a direct conversation that already exists. |
+| 500 | `INTERNAL` | Unexpected server error (generic message; internals never leaked). |
+
+> **Note:** the Week 2 mock returned a flat `{ message }` and failed ~25% of sends on
+> purpose (`SHOULD_FAIL_SEND_RATE`) to exercise optimistic-send rollback. The real
+> backend does **not** randomly fail; sends succeed unless a real error occurs, and all
+> errors use the nested shape above.
 
 ---

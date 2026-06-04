@@ -46,11 +46,11 @@ export async function performSend(
       temporaryId: optimisticMessage.id,
       message: response.message,
     });
-  } catch {
+  } catch (error) {
     dispatch({
       type: "messageSendFailed",
       temporaryId: optimisticMessage.id,
-      error: "Could not send message.",
+      error: error instanceof Error ? error.message : "Could not send message.",
     });
   }
 }
