@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import { getConversations } from "../api/apiClient";
+import { useCallback, useEffect, useReducer } from "react";
+import { conversationApiClient } from "../api/apiClient";
 import type { Conversation } from "../types/chat";
 
 interface UseConversationsResult {
@@ -9,37 +9,69 @@ interface UseConversationsResult {
   reloadConversations: () => Promise<void>;
 }
 
+interface ConversationsState {
+  conversations: Conversation[];
+  isLoading: boolean;
+  error: string | null;
+}
+
+type ConversationsAction =
+  | { type: "loadStarted" }
+  | { type: "loadSucceeded"; conversations: Conversation[] }
+  | { type: "loadFailed"; error: string };
+
+const initialState: ConversationsState = {
+  conversations: [],
+  isLoading: true,
+  error: null,
+};
+
+function conversationsReducer(
+  state: ConversationsState,
+  action: ConversationsAction
+): ConversationsState {
+  switch (action.type) {
+    case "loadStarted":
+      return { ...state, isLoading: true, error: null };
+
+    case "loadSucceeded":
+      return {
+        conversations: action.conversations,
+        isLoading: false,
+        error: null,
+      };
+
+    case "loadFailed":
+      return { conversations: [], isLoading: false, error: action.error };
+  }
+}
+
 export function useConversations(
   currentUserId: string
 ): UseConversationsResult {
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [state, dispatch] = useReducer(conversationsReducer, initialState);
 
   const loadConversations = useCallback(async (): Promise<void> => {
+    dispatch({ type: "loadStarted" });
+
     try {
-      setIsLoading(true);
-      setError(null);
-
-      const response = await getConversations(currentUserId);
-
-      setConversations(response.conversations);
+      const response = await conversationApiClient.getConversations(currentUserId);
+      dispatch({ type: "loadSucceeded", conversations: response.conversations });
     } catch {
-      setError("Could not load conversations.");
-      setConversations([]);
-    } finally {
-      setIsLoading(false);
+      dispatch({ type: "loadFailed", error: "Could not load conversations." });
     }
   }, [currentUserId]);
 
   useEffect(() => {
+    if (!currentUserId) return;
+
     void loadConversations();
-  }, [loadConversations]);
+  }, [currentUserId, loadConversations]);
 
   return {
-    conversations,
-    isLoading,
-    error,
+    conversations: state.conversations,
+    isLoading: state.isLoading,
+    error: state.error,
     reloadConversations: loadConversations,
   };
 }

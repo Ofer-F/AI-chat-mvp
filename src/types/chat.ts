@@ -24,35 +24,3 @@ export interface Conversation {
     lastMessage: Message | null;
     updatedAt: string;
 }
-
-export interface LoginRequest {
-    userId: string;
-}
-
-export interface LoginResponse {
-    token: string;
-    user: User;
-}
-
-export interface GetConversationsResponse {
-    conversations: Conversation[];
-}
-
-export interface GetMessagesRequest {
-    conversationId: string;
-    cursor?: string;
-    limit?: number;
-}
-
-export interface CreateMessageRequest {
-    body: string;
-}
-
-export interface GetMessagesResponse {
-    messages: Message[];
-    nextCursor: string | null;
-}
-
-export interface CreateMessageResponse {
-    message: Message;
-}   

@@ -3,7 +3,7 @@ import {
   initialMessagesState,
   messagesReducer,
   type MessagesState,
-} from "./useMessages.reducer";
+} from "./useConversationMessages.reducer";
 
 function makeMessage(overrides: Partial<Message> = {}): Message {
   return {

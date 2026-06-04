@@ -1,5 +1,6 @@
 import type { JSX } from "react";
-import { useMessages } from "../../hooks/useMessages";
+import { useConversationMessages } from "../../hooks/useConversationMessages";
+import { useSendMessage } from "../../hooks/useSendMessage";
 import { MessagesListPresentational } from "./MessagesListPresentational";
 import { MessageComposer } from "../MessageComposer/MessageComposer";
 import { Toast } from "../Toast/Toast";
@@ -20,9 +21,11 @@ export function MessagesListContainer({
     error,
     hasMore,
     loadMoreMessages,
-    sendNewMessage,
     clearError,
-  } = useMessages(conversationId);
+    dispatch,
+  } = useConversationMessages(conversationId);
+
+  const { sendNewMessage } = useSendMessage(conversationId, dispatch);
 
   return (
     <>
