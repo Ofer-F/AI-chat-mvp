@@ -1,19 +1,11 @@
 import { useState, type FormEvent, type JSX } from "react";
 import { ApiError, conversationApiClient } from "../../api/apiClient";
+import { useUsers } from "../../hooks/useUsers";
 
 interface NewConversationProps {
   currentUserId: string;
   onCreated: (conversationId: string) => void;
 }
-
-// KNOWN LIMITATION: the backend exposes no "list users" endpoint, so the
-// selectable participants are hardcoded to the seeded demo accounts. Newly
-// signed-up users won't appear here and can only be added by raw id.
-const SEEDED_USERS: ReadonlyArray<{ id: string; name: string }> = [
-  { id: "u1", name: "Dana" },
-  { id: "u2", name: "Maya" },
-  { id: "u3", name: "Ofer" },
-];
 
 export function NewConversation({
   currentUserId,
@@ -25,9 +17,13 @@ export function NewConversation({
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const selectableUsers = SEEDED_USERS.filter(
-    (user) => user.id !== currentUserId
-  );
+  const {
+    users,
+    isLoading: isLoadingUsers,
+    error: usersError,
+  } = useUsers();
+
+  const selectableUsers = users.filter((user) => user.id !== currentUserId);
 
   function reset(): void {
     setTitle("");
@@ -111,8 +107,14 @@ export function NewConversation({
 
       <fieldset className="new-conversation__participants">
         <legend className="auth__label">Participants</legend>
-        {selectableUsers.length === 0 ? (
-          <p className="auth__hint">No seeded users available.</p>
+        {isLoadingUsers ? (
+          <p className="auth__hint">Loading users…</p>
+        ) : usersError ? (
+          <p className="auth__error" role="alert">
+            {usersError}
+          </p>
+        ) : selectableUsers.length === 0 ? (
+          <p className="auth__hint">No other users yet.</p>
         ) : (
           selectableUsers.map((user) => (
             <label key={user.id} className="new-conversation__participant">
@@ -122,7 +124,7 @@ export function NewConversation({
                 onChange={() => toggleParticipant(user.id)}
               />
               <span>
-                {user.name} ({user.id})
+                {user.name} ({user.email})
               </span>
             </label>
           ))

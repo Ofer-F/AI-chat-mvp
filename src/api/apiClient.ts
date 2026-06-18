@@ -16,6 +16,10 @@ export interface AuthResponse {
   user: PublicUser;
 }
 
+export interface GetUsersResponse {
+  users: PublicUser[];
+}
+
 export interface GetConversationsResponse {
   conversations: Conversation[];
 }
@@ -50,6 +54,7 @@ export interface AuthApiClient {
 }
 
 export interface ConversationApiClient {
+  getUsers(): Promise<GetUsersResponse>;
   getConversations(): Promise<GetConversationsResponse>;
   createConversation(
     request: CreateConversationRequest
@@ -202,6 +207,10 @@ class HttpAuthApiClient implements AuthApiClient {
 }
 
 class HttpConversationApiClient implements ConversationApiClient {
+  getUsers(): Promise<GetUsersResponse> {
+    return request<GetUsersResponse>("/users");
+  }
+
   getConversations(): Promise<GetConversationsResponse> {
     return request<GetConversationsResponse>("/conversations");
   }
