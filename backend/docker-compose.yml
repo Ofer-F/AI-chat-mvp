@@ -1,0 +1,12 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: chat-mvp-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - chat-mvp-mongo-data:/data/db
+
+volumes:
+  chat-mvp-mongo-data:
