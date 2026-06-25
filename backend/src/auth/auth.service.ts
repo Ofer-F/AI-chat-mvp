@@ -7,7 +7,7 @@ import { LoginDto } from './dto/login.dto';
 import type { JwtPayload } from './strategies/jwt.strategy';
 import type { PublicUser } from '../common/types/chat';
 import { toPublicUser } from '../common/mappers';
-import type { UserDocument } from '../db/schemas/user.schema';
+import type { UserDocument } from '../users/schemas/user.schema';
 
 export interface AuthResponse {
   token: string;

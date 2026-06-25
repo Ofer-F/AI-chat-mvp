@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import type { Model, QueryFilter } from 'mongoose';
-import { Message } from '../schemas/message.schema';
-import type { MessageDocument } from '../schemas/message.schema';
+import { Message } from './schemas/message.schema';
+import type { MessageDocument } from './schemas/message.schema';
 import { ConversationsDbService } from './conversations.db.service';
 
 const DEFAULT_MESSAGES_LIMIT = 20;

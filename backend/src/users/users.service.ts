@@ -3,8 +3,8 @@ import { randomUUID } from 'node:crypto';
 import * as bcrypt from 'bcrypt';
 import type { PublicUser } from '../common/types/chat';
 import { toPublicUser } from '../common/mappers';
-import type { UserDocument } from '../db/schemas/user.schema';
-import { UsersDbService } from '../db/services/users.db.service';
+import type { UserDocument } from './schemas/user.schema';
+import { UsersDbService } from './users.db.service';
 
 const BCRYPT_SALT_ROUNDS = 10;
 
@@ -20,6 +20,10 @@ export class UsersService {
 
   async findById(id: string): Promise<UserDocument | null> {
     return this.usersDb.findById(id);
+  }
+
+  async existsById(id: string): Promise<boolean> {
+    return (await this.usersDb.findById(id)) !== null;
   }
 
   async findByEmail(email: string): Promise<UserDocument | null> {

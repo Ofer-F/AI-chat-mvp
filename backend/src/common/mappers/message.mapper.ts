@@ -1,6 +1,6 @@
 import type { Message } from '../types/chat';
-import type { LastMessage } from '../../db/schemas/conversation.schema';
-import type { MessageDocument } from '../../db/schemas/message.schema';
+import type { LastMessage } from '../../conversations/schemas/conversation.schema';
+import type { MessageDocument } from '../../conversations/schemas/message.schema';
 
 interface MessageParts {
   id: string;

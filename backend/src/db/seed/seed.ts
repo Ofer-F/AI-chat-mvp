@@ -1,7 +1,7 @@
 import type { Model } from 'mongoose';
-import type { ConversationDocument } from '../schemas/conversation.schema';
-import type { MessageDocument } from '../schemas/message.schema';
-import type { UserDocument } from '../schemas/user.schema';
+import type { ConversationDocument } from '../../conversations/schemas/conversation.schema';
+import type { MessageDocument } from '../../conversations/schemas/message.schema';
+import type { UserDocument } from '../../users/schemas/user.schema';
 
 export const DEFAULT_SEED_PASSWORD = 'password123';
 

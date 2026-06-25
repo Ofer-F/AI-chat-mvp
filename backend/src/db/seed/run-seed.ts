@@ -2,12 +2,12 @@ import type { INestApplicationContext } from '@nestjs/common';
 import { getModelToken } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import type { Model } from 'mongoose';
-import { Conversation } from '../schemas/conversation.schema';
-import type { ConversationDocument } from '../schemas/conversation.schema';
-import { Message } from '../schemas/message.schema';
-import type { MessageDocument } from '../schemas/message.schema';
-import { User } from '../schemas/user.schema';
-import type { UserDocument } from '../schemas/user.schema';
+import { Conversation } from '../../conversations/schemas/conversation.schema';
+import type { ConversationDocument } from '../../conversations/schemas/conversation.schema';
+import { Message } from '../../conversations/schemas/message.schema';
+import type { MessageDocument } from '../../conversations/schemas/message.schema';
+import { User } from '../../users/schemas/user.schema';
+import type { UserDocument } from '../../users/schemas/user.schema';
 import { seed } from './seed';
 import type { SeedSummary } from './seed';
 
