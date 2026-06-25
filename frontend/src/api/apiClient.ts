@@ -1,4 +1,9 @@
-import type { Conversation, Message, PublicUser } from "../types/chat";
+import type {
+  Conversation,
+  ConversationType,
+  Message,
+  PublicUser,
+} from "../types/chat";
 
 export interface SignupRequest {
   email: string;
@@ -27,6 +32,7 @@ export interface GetConversationsResponse {
 export interface CreateConversationRequest {
   title: string;
   participantIds: string[];
+  type?: ConversationType;
 }
 
 export interface CreateConversationResponse {
@@ -44,6 +50,12 @@ export interface CreateMessageRequest {
 
 export interface CreateMessageResponse {
   message: Message;
+}
+
+export interface AssistantStreamHandlers {
+  onDelta: (text: string) => void;
+  onDone: (message: Message) => void;
+  onError: (message: string) => void;
 }
 
 export interface AuthApiClient {
@@ -68,6 +80,11 @@ export interface ConversationApiClient {
     conversationId: string,
     request: CreateMessageRequest
   ): Promise<CreateMessageResponse>;
+  streamAssistantMessage(
+    conversationId: string,
+    body: string,
+    handlers: AssistantStreamHandlers
+  ): Promise<void>;
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
@@ -96,14 +113,11 @@ export function setAuthToken(token: string | null): void {
       localStorage.removeItem(TOKEN_STORAGE_KEY);
     }
   } catch {
-    // localStorage may be unavailable (private mode); fall back to in-memory.
   }
 }
 
 let onUnauthorized: (() => void) | null = null;
 
-// Lets the app react to a 401 (clear session + redirect to login) without the
-// client layer importing React state directly.
 export function setUnauthorizedHandler(handler: (() => void) | null): void {
   onUnauthorized = handler;
 }
@@ -249,6 +263,116 @@ class HttpConversationApiClient implements ConversationApiClient {
         body: JSON.stringify(createMessageRequest),
       }
     );
+  }
+
+  async streamAssistantMessage(
+    conversationId: string,
+    body: string,
+    handlers: AssistantStreamHandlers
+  ): Promise<void> {
+    const headers = new Headers();
+    if (authToken) {
+      headers.set("Authorization", `Bearer ${authToken}`);
+    }
+
+    const path = `/conversations/${encodeURIComponent(
+      conversationId
+    )}/assistant/stream?body=${encodeURIComponent(body)}`;
+
+    let response: Response;
+    try {
+      response = await fetch(`${API_BASE_URL}${path}`, {
+        method: "GET",
+        headers,
+      });
+    } catch {
+      handlers.onError("Unable to reach the assistant. Please try again.");
+      return;
+    }
+
+    if (response.status === 401) {
+      setAuthToken(null);
+      onUnauthorized?.();
+      handlers.onError("Your session has expired. Please sign in again.");
+      return;
+    }
+
+    if (!response.ok || !response.body) {
+      handlers.onError(`Request failed (${response.status})`);
+      return;
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    try {
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+
+        let separatorIndex: number;
+        while ((separatorIndex = buffer.indexOf("\n\n")) !== -1) {
+          const frame = buffer.slice(0, separatorIndex);
+          buffer = buffer.slice(separatorIndex + 2);
+          dispatchSseFrame(frame, handlers);
+        }
+      }
+    } catch {
+      handlers.onError("The assistant stream was interrupted.");
+    }
+  }
+}
+
+interface AssistantDeltaData {
+  text: string;
+}
+
+interface AssistantDoneData {
+  message: Message;
+}
+
+interface AssistantErrorData {
+  message: string;
+}
+
+function dispatchSseFrame(frame: string, handlers: AssistantStreamHandlers): void {
+  let event = "message";
+  const dataLines: string[] = [];
+
+  for (const line of frame.split("\n")) {
+    if (line.startsWith("event:")) {
+      event = line.slice("event:".length).trim();
+    } else if (line.startsWith("data:")) {
+      dataLines.push(line.slice("data:".length).trimStart());
+    }
+  }
+
+  if (dataLines.length === 0) {
+    return;
+  }
+
+  let payload: unknown;
+  try {
+    payload = JSON.parse(dataLines.join("\n"));
+  } catch {
+    return;
+  }
+
+  switch (event) {
+    case "delta":
+      handlers.onDelta((payload as AssistantDeltaData).text);
+      break;
+    case "done":
+      handlers.onDone((payload as AssistantDoneData).message);
+      break;
+    case "error":
+      handlers.onError((payload as AssistantErrorData).message);
+      break;
+    default:
+      break;
   }
 }
 

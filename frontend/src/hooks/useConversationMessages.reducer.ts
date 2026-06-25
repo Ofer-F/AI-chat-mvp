@@ -35,6 +35,14 @@ export type MessagesAction =
     | { type: "messageOptimisticAdded"; message: Message }
     | { type: "messageSendConfirmed"; temporaryId: string; message: Message }
     | { type: "messageSendFailed"; temporaryId: string; error: string }
+    | { type: "assistantStreamStarted"; message: Message }
+    | { type: "assistantStreamDelta"; placeholderId: string; textChunk: string }
+    | {
+        type: "assistantStreamCompleted";
+        placeholderId: string;
+        message: Message;
+    }
+    | { type: "assistantStreamFailed"; placeholderId: string; error: string }
     | { type: "errorDismissed" };  
 
 export function messagesReducer(
@@ -101,6 +109,42 @@ export function messagesReducer(
                 error: action.error,
                 messages: state.messages.filter(
                     (message) => message.id !== action.temporaryId
+                ),
+            };
+
+        case "assistantStreamStarted":
+            return {
+                ...state,
+                error: null,
+                messages: [...state.messages, action.message],
+            };
+
+        case "assistantStreamDelta":
+            return {
+                ...state,
+                messages: state.messages.map((message) =>
+                    message.id === action.placeholderId
+                        ? { ...message, body: message.body + action.textChunk }
+                        : message
+                ),
+            };
+
+        case "assistantStreamCompleted":
+            return {
+                ...state,
+                messages: state.messages.map((message) =>
+                    message.id === action.placeholderId
+                        ? action.message
+                        : message
+                ),
+            };
+
+        case "assistantStreamFailed":
+            return {
+                ...state,
+                error: action.error,
+                messages: state.messages.filter(
+                    (message) => message.id !== action.placeholderId
                 ),
             };
 
