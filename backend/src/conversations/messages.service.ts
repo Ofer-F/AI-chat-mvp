@@ -1,14 +1,10 @@
-import {
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import type { Message } from '../common/types/chat';
+import { ASSISTANT_SENDER_ID } from '../common/constants';
 import { toMessageDto } from '../common/mappers';
-import { MessagesDbService } from '../db/services/messages.db.service';
-import { ConversationsDbService } from '../db/services/conversations.db.service';
-import type { ConversationDocument } from '../db/schemas/conversation.schema';
+import { MessagesDbService } from './messages.db.service';
+import { ConversationsService } from './conversations.service';
 
 export interface MessagesPage {
   messages: Message[];
@@ -19,7 +15,7 @@ export interface MessagesPage {
 export class MessagesService {
   constructor(
     private readonly messagesDb: MessagesDbService,
-    private readonly conversationsDb: ConversationsDbService,
+    private readonly conversationsService: ConversationsService,
   ) {}
 
   async listPage(
@@ -28,7 +24,7 @@ export class MessagesService {
     cursor?: string,
     limit?: number,
   ): Promise<MessagesPage> {
-    await this.assertParticipant(conversationId, userId);
+    await this.conversationsService.assertParticipant(conversationId, userId);
 
     const { messages, nextCursor } = await this.messagesDb.listPage(
       conversationId,
@@ -44,7 +40,7 @@ export class MessagesService {
     senderId: string,
     body: string,
   ): Promise<Message> {
-    await this.assertParticipant(conversationId, senderId);
+    await this.conversationsService.assertParticipant(conversationId, senderId);
 
     const doc = await this.messagesDb.create({
       id: `m-${randomUUID()}`,
@@ -56,19 +52,20 @@ export class MessagesService {
     return toMessageDto(doc);
   }
 
-  private async assertParticipant(
+  async createAssistantMessage(
     conversationId: string,
     userId: string,
-  ): Promise<ConversationDocument> {
-    const conversation = await this.conversationsDb.findById(conversationId);
-    if (!conversation) {
-      throw new NotFoundException(`Conversation not found: ${conversationId}`);
-    }
-    if (!conversation.participantIds.includes(userId)) {
-      throw new ForbiddenException(
-        'You are not a participant in this conversation',
-      );
-    }
-    return conversation;
+    body: string,
+  ): Promise<Message> {
+    await this.conversationsService.assertParticipant(conversationId, userId);
+
+    const doc = await this.messagesDb.create({
+      id: `m-${randomUUID()}`,
+      conversationId,
+      senderId: ASSISTANT_SENDER_ID,
+      body,
+    });
+
+    return toMessageDto(doc);
   }
 }
