@@ -13,8 +13,6 @@ export function ChatLayout({ currentUser }: ChatLayoutProps) {
     string | null
   >(null);
 
-  // Lifted here so the thread knows the selected conversation's `type` (to pick
-  // the streaming vs. REST send path) while the sidebar still owns the list UI.
   const { conversations, isLoading, error, reloadConversations } =
     useConversations(currentUser.id);
 
