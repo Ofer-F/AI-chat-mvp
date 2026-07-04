@@ -9,6 +9,7 @@ import type { LlmMessage, LlmToolCall } from './llm/llm.types';
 import { SYSTEM_PROMPT } from './prompts/system-prompt';
 import { analyzeUserMessage } from './structured/analyze-message';
 import { ToolRegistry } from './tools/tool-registry';
+import { TutorService } from './tutor/tutor.service';
 
 const HISTORY_LIMIT = 20;
 
@@ -28,6 +29,7 @@ export class AssistantService {
     private readonly conversations: ConversationsService,
     private readonly messages: MessagesService,
     private readonly tools: ToolRegistry,
+    private readonly tutor: TutorService,
     @Inject(LLM_PROVIDER) private readonly llm: LlmProvider,
   ) {}
 
@@ -41,13 +43,26 @@ export class AssistantService {
       conversationId,
       userId,
     );
-    if (conversation.type !== 'assistant') {
+    if (conversation.type !== 'assistant' && conversation.type !== 'tutor') {
       throw new BadRequestException(
-        'This conversation is not an AI assistant conversation',
+        'This conversation does not support AI assistant replies',
       );
     }
 
     await this.messages.create(conversationId, userId, body);
+
+    if (conversation.type === 'tutor') {
+      const { text, citations } = await this.tutor.streamReply(
+        { userId, body },
+        onDelta,
+      );
+      return this.messages.createAssistantMessage(
+        conversationId,
+        userId,
+        text,
+        citations,
+      );
+    }
 
     const analysis = await analyzeUserMessage(this.llm, body);
 
