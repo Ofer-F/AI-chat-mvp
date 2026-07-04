@@ -13,7 +13,7 @@ export class CreateConversationDto {
   title!: string;
 
   @IsOptional()
-  @IsIn(['human', 'assistant'])
+  @IsIn(['human', 'assistant', 'tutor'])
   type?: ConversationType;
 
   @IsOptional()

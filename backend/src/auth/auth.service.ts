@@ -6,7 +6,7 @@ import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
 import type { JwtPayload } from './strategies/jwt.strategy';
 import type { PublicUser } from '../common/types/chat';
-import { toPublicUser } from '../common/mappers';
+import { toPublicUser } from '../users/mappers/user.mapper';
 import type { UserDocument } from '../users/schemas/user.schema';
 
 export interface AuthResponse {

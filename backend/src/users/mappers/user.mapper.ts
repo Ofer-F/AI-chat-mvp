@@ -1,9 +1,5 @@
-import type { PublicUser } from '../types/chat';
+import type { PublicUser } from '../../common/types/chat';
 
-/**
- * Minimal shape every user mapper needs. Both a hydrated `UserDocument` and the
- * lean `PublicUserRow` (from `findAll`) satisfy this structurally.
- */
 export interface PublicUserSource {
   _id: string;
   name: string;

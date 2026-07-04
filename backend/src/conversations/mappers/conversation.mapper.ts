@@ -1,5 +1,5 @@
-import type { Conversation } from '../types/chat';
-import type { ConversationDocument } from '../../conversations/schemas/conversation.schema';
+import type { Conversation } from '../../common/types/chat';
+import type { ConversationDocument } from '../schemas/conversation.schema';
 import { toLastMessageDto } from './message.mapper';
 
 export function toConversationDto(doc: ConversationDocument): Conversation {

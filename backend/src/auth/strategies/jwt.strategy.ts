@@ -4,7 +4,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { UsersService } from '../../users/users.service';
 import type { PublicUser } from '../../common/types/chat';
-import { toPublicUser } from '../../common/mappers';
+import { toPublicUser } from '../../users/mappers/user.mapper';
 
 export interface JwtPayload {
   sub: string;

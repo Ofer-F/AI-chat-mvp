@@ -2,7 +2,7 @@ import { ConflictException, Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import * as bcrypt from 'bcrypt';
 import type { PublicUser } from '../common/types/chat';
-import { toPublicUser } from '../common/mappers';
+import { toPublicUser } from './mappers/user.mapper';
 import type { UserDocument } from './schemas/user.schema';
 import { UsersDbService } from './users.db.service';
 
