@@ -7,6 +7,7 @@ const noop = (): void => {};
 const sampleConversation: Conversation = {
   id: "c1",
   title: "Dana and Maya",
+  type: "human",
   participantIds: ["u1", "u2"],
   lastMessage: {
     id: "m1",

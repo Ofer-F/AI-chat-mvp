@@ -20,9 +20,12 @@ export interface Message {
   status: MessageStatus;
 }
 
+export type ConversationType = 'human' | 'assistant';
+
 export interface Conversation {
   id: string;
   title: string;
+  type: ConversationType;
   participantIds: string[];
   lastMessage: Message | null;
   updatedAt: string;

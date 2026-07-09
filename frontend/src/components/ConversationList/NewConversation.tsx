@@ -39,6 +39,29 @@ export function NewConversation({
     );
   }
 
+  async function handleCreateAssistant(): Promise<void> {
+    setError(null);
+    setIsSubmitting(true);
+    try {
+      const response = await conversationApiClient.createConversation({
+        title: "AI Assistant",
+        type: "assistant",
+        participantIds: [],
+      });
+      reset();
+      setIsOpen(false);
+      onCreated(response.conversation.id);
+    } catch (caught) {
+      setError(
+        caught instanceof ApiError
+          ? caught.message
+          : "Could not create conversation."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     setError(null);
@@ -81,6 +104,15 @@ export function NewConversation({
           onClick={() => setIsOpen(true)}
         >
           New conversation
+        </button>
+        <button
+          type="button"
+          className="btn new-conversation__assistant"
+          onClick={handleCreateAssistant}
+          disabled={isSubmitting}
+          aria-busy={isSubmitting}
+        >
+          {isSubmitting ? "Creating…" : "New AI Assistant"}
         </button>
       </div>
     );

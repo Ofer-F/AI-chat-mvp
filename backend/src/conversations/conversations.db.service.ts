@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import type { Model } from 'mongoose';
-import { Conversation } from '../schemas/conversation.schema';
-import type { ConversationDocument } from '../schemas/conversation.schema';
+import { Conversation } from './schemas/conversation.schema';
+import type { ConversationDocument } from './schemas/conversation.schema';
+import type { ConversationType } from '../common/types/chat';
 
 export interface CreateConversationData {
   id: string;
   title: string;
+  type: ConversationType;
   participantIds: string[];
 }
 
@@ -36,7 +38,6 @@ export class ConversationsDbService {
     return this.conversationModel.findById(id).exec();
   }
 
-  /** Finds an existing 1:1 conversation with exactly these two participants. */
   async findDirectConversation(
     participantIds: string[],
   ): Promise<ConversationDocument | null> {
@@ -50,6 +51,7 @@ export class ConversationsDbService {
     return this.conversationModel.create({
       _id: data.id,
       title: data.title,
+      type: data.type,
       participantIds: data.participantIds,
       lastMessage: null,
       lastMessageAt: now,

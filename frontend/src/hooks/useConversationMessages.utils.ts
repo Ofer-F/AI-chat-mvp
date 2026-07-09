@@ -1,18 +1,31 @@
 import type { Dispatch } from "react";
-import type { Message } from "../types/chat";
+import type { Message, MessageStatus } from "../types/chat";
 import { conversationApiClient } from "../api/apiClient";
+import { ASSISTANT_SENDER_ID } from "../constants";
 import type { MessagesAction } from "./useConversationMessages.reducer";
 
 export function createOptimisticMessage(
   conversationId: string,
   senderId: string,
-  body: string
+  body: string,
+  status: MessageStatus = "pending"
 ): Message {
   return {
     id: `temp-${crypto.randomUUID()}`,
     conversationId,
     senderId,
     body,
+    createdAt: new Date().toISOString(),
+    status,
+  };
+}
+
+export function createAssistantPlaceholder(conversationId: string): Message {
+  return {
+    id: `temp-assistant-${crypto.randomUUID()}`,
+    conversationId,
+    senderId: ASSISTANT_SENDER_ID,
+    body: "",
     createdAt: new Date().toISOString(),
     status: "pending",
   };
@@ -51,4 +64,52 @@ export async function performSend(
       error: error instanceof Error ? error.message : "Could not send message.",
     });
   }
+}
+
+export async function performAssistantStream(
+  dispatch: Dispatch<MessagesAction>,
+  conversationId: string,
+  senderId: string,
+  body: string
+): Promise<void> {
+  const trimmedBody = body.trim();
+  if (!trimmedBody) return;
+
+  // The backend persists the user message before streaming, so we show it as
+  // already sent (there's no separate confirmation round-trip on this path).
+  const userMessage = createOptimisticMessage(
+    conversationId,
+    senderId,
+    trimmedBody,
+    "sent"
+  );
+  dispatch({ type: "messageOptimisticAdded", message: userMessage });
+
+  const placeholder = createAssistantPlaceholder(conversationId);
+  dispatch({ type: "assistantStreamStarted", message: placeholder });
+
+  await conversationApiClient.streamAssistantMessage(
+    conversationId,
+    trimmedBody,
+    {
+      onDelta: (text) =>
+        dispatch({
+          type: "assistantStreamDelta",
+          placeholderId: placeholder.id,
+          textChunk: text,
+        }),
+      onDone: (message) =>
+        dispatch({
+          type: "assistantStreamCompleted",
+          placeholderId: placeholder.id,
+          message,
+        }),
+      onError: (errorMessage) =>
+        dispatch({
+          type: "assistantStreamFailed",
+          placeholderId: placeholder.id,
+          error: errorMessage,
+        }),
+    }
+  );
 }

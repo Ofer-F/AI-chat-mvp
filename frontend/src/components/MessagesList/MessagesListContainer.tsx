@@ -1,17 +1,21 @@
 import type { JSX } from "react";
+import type { ConversationType } from "../../types/chat";
 import { useConversationMessages } from "../../hooks/useConversationMessages";
 import { useSendMessage } from "../../hooks/useSendMessage";
+import { useAssistantStream } from "../../hooks/useAssistantStream";
 import { MessagesListPresentational } from "./MessagesListPresentational";
 import { MessageComposer } from "../MessageComposer/MessageComposer";
 import { Toast } from "../Toast/Toast";
 
 interface MessagesListContainerProps {
   conversationId: string | null;
+  conversationType: ConversationType | null;
   currentUserId: string;
 }
 
 export function MessagesListContainer({
   conversationId,
+  conversationType,
   currentUserId,
 }: MessagesListContainerProps): JSX.Element {
   const {
@@ -26,6 +30,12 @@ export function MessagesListContainer({
   } = useConversationMessages(conversationId);
 
   const { sendNewMessage } = useSendMessage(conversationId, dispatch);
+  const { sendAssistantMessage } = useAssistantStream(conversationId, dispatch);
+
+  const handleSend = (body: string): Promise<void> =>
+    conversationType === "assistant"
+      ? sendAssistantMessage(body, currentUserId)
+      : sendNewMessage(body, currentUserId);
 
   return (
     <>
@@ -42,7 +52,7 @@ export function MessagesListContainer({
 
     <MessageComposer
         disabled={conversationId === null}
-        onSendMessage={(body) => sendNewMessage(body, currentUserId)}
+        onSendMessage={handleSend}
       />
       <Toast message={error} onDismiss={clearError} />
     </>

@@ -26,3 +26,6 @@ yarn-error.log*
 .DS_Store
 .idea/
 *.sublime-workspace
+
+# Local-only project notes (not for git)
+PROJECT_CONTEXT.md

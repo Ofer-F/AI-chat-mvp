@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import type { HydratedDocument } from 'mongoose';
+import type { ConversationType } from '../../common/types/chat';
 
 @Schema({ _id: false })
 export class LastMessage {
@@ -30,6 +31,9 @@ export class Conversation {
 
   @Prop({ type: String, required: true })
   title!: string;
+
+  @Prop({ type: String, required: true, default: 'human' })
+  type!: ConversationType;
 
   @Prop({ type: [String], required: true, default: [] })
   participantIds!: string[];
