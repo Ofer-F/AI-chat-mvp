@@ -7,6 +7,11 @@ import type { Citation } from '../common/types/chat';
 import { ConversationsDbService } from './conversations.db.service';
 
 const DEFAULT_MESSAGES_LIMIT = 20;
+const DEFAULT_SEARCH_LIMIT = 20;
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 export interface CreateMessageData {
   id: string;
@@ -67,6 +72,32 @@ export class MessagesDbService {
     return { messages, nextCursor };
   }
 
+  async searchByUser(
+    userId: string,
+    query: string,
+    limit?: number,
+  ): Promise<MessageDocument[]> {
+    const trimmed = query.trim();
+    if (!trimmed) {
+      return [];
+    }
+
+    const conversationIds =
+      await this.conversationsDb.listConversationIdsForUser(userId);
+    if (conversationIds.length === 0) {
+      return [];
+    }
+
+    const pageSize = limit && limit > 0 ? limit : DEFAULT_SEARCH_LIMIT;
+    const pattern = new RegExp(escapeRegExp(trimmed), 'i');
+
+    return this.messageModel
+      .find({ conversationId: { $in: conversationIds }, body: pattern })
+      .sort({ createdAt: -1, _id: -1 })
+      .limit(pageSize)
+      .exec();
+  }
+
   async create(data: CreateMessageData): Promise<MessageDocument> {
     const now = new Date();
     const message = await this.messageModel.create({
@@ -90,5 +121,9 @@ export class MessagesDbService {
     });
 
     return message;
+  }
+
+  async deleteByConversation(conversationId: string): Promise<void> {
+    await this.messageModel.deleteMany({ conversationId }).exec();
   }
 }
