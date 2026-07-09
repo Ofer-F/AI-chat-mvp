@@ -13,6 +13,7 @@ import {
   ConversationsDbService,
   type LastMessageSnapshot,
 } from './conversations.db.service';
+import { MessagesDbService } from './messages.db.service';
 import type { ConversationDocument } from './schemas/conversation.schema';
 import { UsersService } from '../users/users.service';
 
@@ -20,6 +21,7 @@ import { UsersService } from '../users/users.service';
 export class ConversationsService {
   constructor(
     private readonly conversationsDb: ConversationsDbService,
+    private readonly messagesDb: MessagesDbService,
     private readonly users: UsersService,
   ) {}
 
@@ -107,6 +109,12 @@ export class ConversationsService {
     userId: string,
   ): Promise<void> {
     await this.getForParticipant(conversationId, userId);
+  }
+
+  async deleteForUser(conversationId: string, userId: string): Promise<void> {
+    await this.assertParticipant(conversationId, userId);
+    await this.messagesDb.deleteByConversation(conversationId);
+    await this.conversationsDb.deleteById(conversationId);
   }
 
   async setLastMessage(

@@ -34,6 +34,15 @@ export class ConversationsDbService {
       .exec();
   }
 
+  async listConversationIdsForUser(userId: string): Promise<string[]> {
+    const docs = await this.conversationModel
+      .find({ participantIds: userId })
+      .select('_id')
+      .lean<Pick<Conversation, '_id'>[]>()
+      .exec();
+    return docs.map((doc) => doc._id);
+  }
+
   async findById(id: string): Promise<ConversationDocument | null> {
     return this.conversationModel.findById(id).exec();
   }
@@ -70,5 +79,9 @@ export class ConversationsDbService {
         { new: true },
       )
       .exec();
+  }
+
+  async deleteById(id: string): Promise<void> {
+    await this.conversationModel.deleteOne({ _id: id }).exec();
   }
 }

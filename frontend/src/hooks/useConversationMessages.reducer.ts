@@ -37,6 +37,7 @@ export type MessagesAction =
     | { type: "messageSendFailed"; temporaryId: string; error: string }
     | { type: "assistantStreamStarted"; message: Message }
     | { type: "assistantStreamDelta"; placeholderId: string; textChunk: string }
+    | { type: "assistantStreamToolCall"; placeholderId: string; label: string }
     | {
         type: "assistantStreamCompleted";
         placeholderId: string;
@@ -124,7 +125,23 @@ export function messagesReducer(
                 ...state,
                 messages: state.messages.map((message) =>
                     message.id === action.placeholderId
-                        ? { ...message, body: message.body + action.textChunk }
+                        ? {
+                            ...message,
+                            body: message.body + action.textChunk,
+                            // First real token: the agent is answering now, so
+                            // drop any lingering tool-progress label.
+                            toolProgress: undefined,
+                        }
+                        : message
+                ),
+            };
+
+        case "assistantStreamToolCall":
+            return {
+                ...state,
+                messages: state.messages.map((message) =>
+                    message.id === action.placeholderId
+                        ? { ...message, toolProgress: action.label }
                         : message
                 ),
             };

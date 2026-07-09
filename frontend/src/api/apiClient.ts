@@ -55,6 +55,8 @@ export interface CreateMessageResponse {
 
 export interface AssistantStreamHandlers {
   onDelta: (text: string) => void;
+  onToolCall: (event: { name: string; label: string }) => void;
+  onToolResult: (event: { name: string }) => void;
   onDone: (message: Message) => void;
   onError: (message: string) => void;
 }
@@ -86,6 +88,7 @@ export interface ConversationApiClient {
   createConversation(
     request: CreateConversationRequest
   ): Promise<CreateConversationResponse>;
+  deleteConversation(conversationId: string): Promise<void>;
   getMessages(
     conversationId: string,
     cursor?: string,
@@ -257,6 +260,13 @@ class HttpConversationApiClient implements ConversationApiClient {
     });
   }
 
+  deleteConversation(conversationId: string): Promise<void> {
+    return request<void>(
+      `/conversations/${encodeURIComponent(conversationId)}`,
+      { method: "DELETE" }
+    );
+  }
+
   getMessages(
     conversationId: string,
     cursor?: string,
@@ -349,6 +359,15 @@ interface AssistantDeltaData {
   text: string;
 }
 
+interface AssistantToolCallData {
+  name: string;
+  label: string;
+}
+
+interface AssistantToolResultData {
+  name: string;
+}
+
 interface AssistantDoneData {
   message: Message;
 }
@@ -383,6 +402,12 @@ function dispatchSseFrame(frame: string, handlers: AssistantStreamHandlers): voi
   switch (event) {
     case "delta":
       handlers.onDelta((payload as AssistantDeltaData).text);
+      break;
+    case "tool_call":
+      handlers.onToolCall(payload as AssistantToolCallData);
+      break;
+    case "tool_result":
+      handlers.onToolResult(payload as AssistantToolResultData);
       break;
     case "done":
       handlers.onDone((payload as AssistantDoneData).message);

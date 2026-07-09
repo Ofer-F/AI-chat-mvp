@@ -9,7 +9,7 @@ import type { LlmMessage, LlmToolCall } from './llm/llm.types';
 import { SYSTEM_PROMPT } from './prompts/system-prompt';
 import { analyzeUserMessage } from './structured/analyze-message';
 import { ToolRegistry } from './tools/tool-registry';
-import { TutorService } from './tutor/tutor.service';
+import { TutorAgentService } from './agent/tutor-agent.service';
 
 const HISTORY_LIMIT = 20;
 
@@ -23,19 +23,25 @@ export interface StreamReplyInput {
   body: string;
 }
 
+export interface AssistantStreamHandlers {
+  onDelta: (text: string) => void;
+  onToolCall: (name: string) => void;
+  onToolResult: (name: string) => void;
+}
+
 @Injectable()
 export class AssistantService {
   constructor(
     private readonly conversations: ConversationsService,
     private readonly messages: MessagesService,
     private readonly tools: ToolRegistry,
-    private readonly tutor: TutorService,
+    private readonly tutorAgent: TutorAgentService,
     @Inject(LLM_PROVIDER) private readonly llm: LlmProvider,
   ) {}
 
   async streamReply(
     input: StreamReplyInput,
-    onDelta: (delta: string) => void,
+    handlers: AssistantStreamHandlers,
   ): Promise<Message> {
     const { conversationId, userId, body } = input;
 
@@ -52,9 +58,15 @@ export class AssistantService {
     await this.messages.create(conversationId, userId, body);
 
     if (conversation.type === 'tutor') {
-      const { text, citations } = await this.tutor.streamReply(
-        { userId, body },
-        onDelta,
+      const { text, citations } = await this.tutorAgent.run(
+        conversationId,
+        userId,
+        body,
+        {
+          emitDelta: handlers.onDelta,
+          emitToolCall: handlers.onToolCall,
+          emitToolResult: handlers.onToolResult,
+        },
       );
       return this.messages.createAssistantMessage(
         conversationId,
@@ -68,7 +80,7 @@ export class AssistantService {
 
     if (!analysis.withinScope) {
       const refusal = analysis.refusalReason.trim() || DEFAULT_REFUSAL;
-      onDelta(refusal);
+      handlers.onDelta(refusal);
       return this.messages.createAssistantMessage(
         conversationId,
         userId,
@@ -84,7 +96,7 @@ export class AssistantService {
         tools: this.tools.getDefinitions(),
       },
       {
-        onTextDelta: onDelta,
+        onTextDelta: handlers.onDelta,
         onToolCall: (call) => this.executeTool(userId, call),
       },
     );

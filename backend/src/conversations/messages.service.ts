@@ -35,6 +35,15 @@ export class MessagesService {
     return { messages: messages.map((doc) => toMessageDto(doc)), nextCursor };
   }
 
+  async searchByUser(
+    userId: string,
+    query: string,
+    limit?: number,
+  ): Promise<Message[]> {
+    const docs = await this.messagesDb.searchByUser(userId, query, limit);
+    return docs.map((doc) => toMessageDto(doc));
+  }
+
   async create(
     conversationId: string,
     senderId: string,

@@ -24,6 +24,7 @@ export interface Message {
     createdAt: string;
     status: MessageStatus;
     citations?: Citation[];
+    toolProgress?: string;
 }
 
 export type ConversationType = 'human' | 'assistant' | 'tutor';

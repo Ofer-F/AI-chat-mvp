@@ -89,9 +89,12 @@ async function main(): Promise<void> {
               userId: EVAL_USER_ID,
               body: userMessage,
             },
-            () => {
-              // Deltas are accumulated server-side; the persisted message body
-              // is the full reply, so nothing to do per-token here.
+            {
+              // Deltas/tool events are accumulated server-side; the persisted
+              // message body is the full reply, so nothing to do here.
+              onDelta: () => {},
+              onToolCall: () => {},
+              onToolResult: () => {},
             },
           );
 

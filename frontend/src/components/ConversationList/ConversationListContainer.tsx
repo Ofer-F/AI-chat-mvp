@@ -9,7 +9,9 @@ interface ConversationListContainerProps {
   error: string | null;
   reloadConversations: () => Promise<void>;
   selectedConversationId: string | null;
+  deletingConversationId: string | null;
   onSelectConversation: (conversationId: string) => void;
+  onDeleteConversation: (conversationId: string) => void;
 }
 
 export function ConversationListContainer({
@@ -19,7 +21,9 @@ export function ConversationListContainer({
   error,
   reloadConversations,
   selectedConversationId,
+  deletingConversationId,
   onSelectConversation,
+  onDeleteConversation,
 }: ConversationListContainerProps) {
   async function handleCreated(conversationId: string): Promise<void> {
     await reloadConversations();
@@ -35,7 +39,9 @@ export function ConversationListContainer({
       <ConversationListPresentational
         conversations={conversations}
         selectedConversationId={selectedConversationId}
+        deletingConversationId={deletingConversationId}
         onSelectConversation={onSelectConversation}
+        onDeleteConversation={onDeleteConversation}
         isLoading={isLoading}
         error={error}
       />

@@ -1,12 +1,13 @@
 import { useEffect, useRef } from "react";
 import type { JSX } from "react";
-import type { Message } from "../../types/chat";
+import type { ConversationType, Message } from "../../types/chat";
 import { MessageBubble } from "./MessageBubble";
 import { MessagesListSkeleton } from "./MessagesListSkeleton";
 
 interface MessagesListPresentationalProps {
   messages: Message[];
   currentUserId: string;
+  conversationType: ConversationType | null;
   isLoading: boolean;
   error: string | null;
   hasMore: boolean;
@@ -18,6 +19,7 @@ interface MessagesListPresentationalProps {
 export function MessagesListPresentational({
   messages,
   currentUserId,
+  conversationType,
   isLoading,
   hasMore,
   isLoadingMore,
@@ -75,6 +77,7 @@ export function MessagesListPresentational({
           key={message.id}
           message={message}
           currentUserId={currentUserId}
+          conversationType={conversationType}
         />
       ))}
       <div ref={messagesEndRef} />
