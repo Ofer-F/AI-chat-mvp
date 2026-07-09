@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import type { Message } from '../common/types/chat';
+import type { Citation, Message } from '../common/types/chat';
 import { ASSISTANT_SENDER_ID } from '../common/constants';
-import { toMessageDto } from '../common/mappers';
+import { toMessageDto } from './mappers/message.mapper';
 import { MessagesDbService } from './messages.db.service';
 import { ConversationsService } from './conversations.service';
 
@@ -56,6 +56,7 @@ export class MessagesService {
     conversationId: string,
     userId: string,
     body: string,
+    citations?: Citation[],
   ): Promise<Message> {
     await this.conversationsService.assertParticipant(conversationId, userId);
 
@@ -64,6 +65,7 @@ export class MessagesService {
       conversationId,
       senderId: ASSISTANT_SENDER_ID,
       body,
+      citations,
     });
 
     return toMessageDto(doc);

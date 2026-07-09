@@ -20,9 +20,6 @@ export function MessageBubble({ message, currentUserId }: MessageBubbleProps) {
       ? "AI Assistant"
       : message.senderId;
 
-  // While the assistant reply streams in, its placeholder stays `pending`: show
-  // a typing indicator before the first token, then the growing text with a
-  // blinking cursor.
   const isStreaming = isAssistant && message.status === "pending";
   const isAwaitingFirstToken = isStreaming && message.body.length === 0;
 
@@ -43,6 +40,26 @@ export function MessageBubble({ message, currentUserId }: MessageBubbleProps) {
             {isStreaming && <span className="bubble__cursor" aria-hidden="true" />}
           </p>
         )}
+
+        {message.citations && message.citations.length > 0 ? (
+          <div className="bubble__sources">
+            <span className="bubble__sources-label">
+              Sources ({message.citations.length})
+            </span>
+            <ul className="bubble__sources-list">
+              {message.citations.map((citation) => (
+                <li key={citation.id}>
+                  <details className="bubble__source">
+                    <summary className="bubble__source-name">
+                      {citation.documentName}
+                    </summary>
+                    <p className="bubble__source-text">{citation.text}</p>
+                  </details>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
 
         {!isAssistant && message.status === "pending" && (
           <small className="bubble__status">Sending…</small>

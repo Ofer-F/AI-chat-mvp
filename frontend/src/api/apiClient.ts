@@ -1,6 +1,7 @@
 import type {
   Conversation,
   ConversationType,
+  KnowledgeDocument,
   Message,
   PublicUser,
 } from "../types/chat";
@@ -56,6 +57,20 @@ export interface AssistantStreamHandlers {
   onDelta: (text: string) => void;
   onDone: (message: Message) => void;
   onError: (message: string) => void;
+}
+
+export interface GetKnowledgeDocumentsResponse {
+  documents: KnowledgeDocument[];
+}
+
+export interface UploadKnowledgeDocumentResponse {
+  document: KnowledgeDocument;
+}
+
+export interface KnowledgeApiClient {
+  uploadDocument(file: File): Promise<UploadKnowledgeDocumentResponse>;
+  listDocuments(): Promise<GetKnowledgeDocumentsResponse>;
+  deleteDocument(documentId: string): Promise<void>;
 }
 
 export interface AuthApiClient {
@@ -151,7 +166,11 @@ export class ApiError extends Error {
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
-  if (init?.body !== undefined && !headers.has("Content-Type")) {
+  if (
+    init?.body !== undefined &&
+    !(init.body instanceof FormData) &&
+    !headers.has("Content-Type")
+  ) {
     headers.set("Content-Type", "application/json");
   }
   if (authToken) {
@@ -376,6 +395,30 @@ function dispatchSseFrame(frame: string, handlers: AssistantStreamHandlers): voi
   }
 }
 
+class HttpKnowledgeApiClient implements KnowledgeApiClient {
+  uploadDocument(file: File): Promise<UploadKnowledgeDocumentResponse> {
+    const formData = new FormData();
+    formData.append("file", file);
+    return request<UploadKnowledgeDocumentResponse>("/knowledge/documents", {
+      method: "POST",
+      body: formData,
+    });
+  }
+
+  listDocuments(): Promise<GetKnowledgeDocumentsResponse> {
+    return request<GetKnowledgeDocumentsResponse>("/knowledge/documents");
+  }
+
+  deleteDocument(documentId: string): Promise<void> {
+    return request<void>(
+      `/knowledge/documents/${encodeURIComponent(documentId)}`,
+      { method: "DELETE" }
+    );
+  }
+}
+
 export const authApiClient: AuthApiClient = new HttpAuthApiClient();
 export const conversationApiClient: ConversationApiClient =
   new HttpConversationApiClient();
+export const knowledgeApiClient: KnowledgeApiClient =
+  new HttpKnowledgeApiClient();

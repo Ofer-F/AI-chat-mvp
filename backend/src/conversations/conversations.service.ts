@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import type { Conversation, ConversationType } from '../common/types/chat';
-import { toConversationDto } from '../common/mappers';
+import { toConversationDto } from './mappers/conversation.mapper';
 import { CreateConversationDto } from './dto/create-conversation.dto';
 import {
   ConversationsDbService,
@@ -40,11 +40,11 @@ export class ConversationsService {
 
     const type: ConversationType = input.type ?? 'human';
 
-    if (type === 'assistant') {
+    if (type === 'assistant' || type === 'tutor') {
       const doc = await this.conversationsDb.create({
         id: `c-${randomUUID()}`,
-        title: input.title,
-        type: 'assistant',
+        title,
+        type,
         participantIds: [userId],
       });
 

@@ -10,7 +10,7 @@ const output = z.object({
     z.object({
       id: z.string(),
       title: z.string(),
-      type: z.enum(['human', 'assistant']),
+      type: z.enum(['human', 'assistant', 'tutor']),
       updatedAt: z.string(),
       lastMessage: z.string().nullable(),
     }),

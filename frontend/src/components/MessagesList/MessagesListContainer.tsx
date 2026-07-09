@@ -5,6 +5,7 @@ import { useSendMessage } from "../../hooks/useSendMessage";
 import { useAssistantStream } from "../../hooks/useAssistantStream";
 import { MessagesListPresentational } from "./MessagesListPresentational";
 import { MessageComposer } from "../MessageComposer/MessageComposer";
+import { KnowledgePanel } from "../Knowledge/KnowledgePanel";
 import { Toast } from "../Toast/Toast";
 
 interface MessagesListContainerProps {
@@ -32,13 +33,20 @@ export function MessagesListContainer({
   const { sendNewMessage } = useSendMessage(conversationId, dispatch);
   const { sendAssistantMessage } = useAssistantStream(conversationId, dispatch);
 
+  const isAiThread =
+    conversationType === "assistant" || conversationType === "tutor";
+
   const handleSend = (body: string): Promise<void> =>
-    conversationType === "assistant"
+    isAiThread
       ? sendAssistantMessage(body, currentUserId)
       : sendNewMessage(body, currentUserId);
 
   return (
     <>
+    {conversationType === "tutor" && conversationId !== null ? (
+      <KnowledgePanel />
+    ) : null}
+
     <MessagesListPresentational
       messages={messages}
       currentUserId={currentUserId}

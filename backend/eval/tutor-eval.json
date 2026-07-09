@@ -1,0 +1,130 @@
+[
+  {
+    "name": "photosynthesis-light-reactions-location",
+    "question": "Where in the chloroplast do the light-dependent reactions of photosynthesis take place?",
+    "expectedDocument": "photosynthesis.md",
+    "expectedSnippet": "thylakoid membranes",
+    "expectedKeywords": ["thylakoid"],
+    "grounded": true
+  },
+  {
+    "name": "photosynthesis-pigment",
+    "question": "Which pigment absorbs sunlight during photosynthesis?",
+    "expectedDocument": "photosynthesis.md",
+    "expectedSnippet": "chlorophyll",
+    "expectedKeywords": ["chlorophyll"],
+    "grounded": true
+  },
+  {
+    "name": "photosynthesis-calvin-cycle",
+    "question": "Where does the Calvin cycle happen and what does it fix into glucose?",
+    "expectedDocument": "photosynthesis.md",
+    "expectedSnippet": "stroma",
+    "expectedKeywords": ["stroma", "carbon dioxide"],
+    "grounded": true
+  },
+  {
+    "name": "http-created-code",
+    "question": "Which HTTP status code indicates that a new resource was successfully created?",
+    "expectedDocument": "http-status-codes.md",
+    "expectedSnippet": "201 created",
+    "expectedKeywords": ["201"],
+    "grounded": true
+  },
+  {
+    "name": "http-unauthorized-meaning",
+    "question": "What does a 401 HTTP status code mean?",
+    "expectedDocument": "http-status-codes.md",
+    "expectedSnippet": "401 unauthorized",
+    "expectedKeywords": ["authentication"],
+    "grounded": true
+  },
+  {
+    "name": "http-service-unavailable",
+    "question": "Which status code means the server is temporarily unavailable, for example during maintenance?",
+    "expectedDocument": "http-status-codes.md",
+    "expectedSnippet": "503 service unavailable",
+    "expectedKeywords": ["503"],
+    "grounded": true
+  },
+  {
+    "name": "atlas-local-support",
+    "question": "Can I use Vector Search on a local MongoDB deployment?",
+    "expectedDocument": "mongodb-atlas-vector-search.md",
+    "expectedSnippet": "local mongodb deployment does not support",
+    "expectedKeywords": ["atlas"],
+    "grounded": true
+  },
+  {
+    "name": "atlas-embedding-dimensions",
+    "question": "How many dimensions does the OpenAI text-embedding-3-small model produce?",
+    "expectedDocument": "mongodb-atlas-vector-search.md",
+    "expectedSnippet": "1536 dimensions",
+    "expectedKeywords": ["1536"],
+    "grounded": true
+  },
+  {
+    "name": "atlas-per-user-privacy",
+    "question": "How can a vector index keep one user's chunks private from other users?",
+    "expectedDocument": "mongodb-atlas-vector-search.md",
+    "expectedSnippet": "filtering by a userid field",
+    "expectedKeywords": ["filter", "userid"],
+    "grounded": true
+  },
+  {
+    "name": "atlas-similarity-functions",
+    "question": "What similarity functions can a MongoDB Atlas vector index use?",
+    "expectedDocument": "mongodb-atlas-vector-search.md",
+    "expectedSnippet": "cosine, euclidean, or dotproduct",
+    "expectedKeywords": ["cosine"],
+    "grounded": true
+  },
+  {
+    "name": "diet-primary-fat",
+    "question": "What is the primary source of fat in the Mediterranean diet?",
+    "expectedDocument": "mediterranean-diet.md",
+    "expectedSnippet": "olive oil as the primary source of fat",
+    "expectedKeywords": ["olive oil"],
+    "grounded": true
+  },
+  {
+    "name": "diet-fish-frequency",
+    "question": "How often is fish eaten on the Mediterranean diet?",
+    "expectedDocument": "mediterranean-diet.md",
+    "expectedSnippet": "at least twice a week",
+    "expectedKeywords": ["twice"],
+    "grounded": true
+  },
+  {
+    "name": "diet-health-benefit",
+    "question": "What health benefit has research linked to the Mediterranean diet?",
+    "expectedDocument": "mediterranean-diet.md",
+    "expectedSnippet": "reduced risk of heart disease",
+    "expectedKeywords": ["heart"],
+    "grounded": true
+  },
+  {
+    "name": "out-of-kb-world-cup",
+    "question": "Who won the FIFA World Cup in 2018?",
+    "expectedDocument": null,
+    "expectedSnippet": null,
+    "expectedKeywords": [],
+    "grounded": false
+  },
+  {
+    "name": "out-of-kb-capital",
+    "question": "What is the capital city of Japan?",
+    "expectedDocument": null,
+    "expectedSnippet": null,
+    "expectedKeywords": [],
+    "grounded": false
+  },
+  {
+    "name": "out-of-kb-recipe",
+    "question": "Give me a step-by-step recipe for a chocolate lava cake.",
+    "expectedDocument": null,
+    "expectedSnippet": null,
+    "expectedKeywords": [],
+    "grounded": false
+  }
+]

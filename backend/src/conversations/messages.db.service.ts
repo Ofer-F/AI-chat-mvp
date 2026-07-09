@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import type { Model, QueryFilter } from 'mongoose';
 import { Message } from './schemas/message.schema';
 import type { MessageDocument } from './schemas/message.schema';
+import type { Citation } from '../common/types/chat';
 import { ConversationsDbService } from './conversations.db.service';
 
 const DEFAULT_MESSAGES_LIMIT = 20;
@@ -12,6 +13,7 @@ export interface CreateMessageData {
   conversationId: string;
   senderId: string;
   body: string;
+  citations?: Citation[];
 }
 
 export interface MessagesPageResult {
@@ -72,6 +74,10 @@ export class MessagesDbService {
       conversationId: data.conversationId,
       senderId: data.senderId,
       body: data.body,
+      citations:
+        data.citations && data.citations.length > 0
+          ? data.citations
+          : undefined,
       createdAt: now,
     });
 

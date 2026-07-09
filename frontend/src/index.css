@@ -645,3 +645,129 @@ code {
 .new-conversation__actions .btn {
   border-color: var(--border);
 }
+
+.new-conversation__tutor {
+  width: 100%;
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.knowledge-panel {
+  border-bottom: 1px solid var(--border);
+  padding: 12px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--bg);
+}
+
+.knowledge-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.knowledge-panel__title {
+  font-family: var(--heading);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-h);
+  margin: 0;
+}
+
+.knowledge-panel__upload {
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-size: 13px;
+}
+
+.knowledge-panel__file-input {
+  display: none;
+}
+
+.knowledge-panel__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.knowledge-panel__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-h);
+}
+
+.knowledge-panel__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.knowledge-panel__meta {
+  font-size: 12px;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.knowledge-panel__delete {
+  font-size: 12px;
+  border-color: var(--border);
+  flex-shrink: 0;
+}
+
+.bubble__sources {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+}
+
+.bubble__sources-label {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text);
+}
+
+.bubble__sources-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bubble__source-name {
+  font-size: 13px;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.bubble__source-name:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.bubble__source-text {
+  font-size: 13px;
+  color: var(--text);
+  margin: 4px 0 0;
+  padding-left: 12px;
+  border-left: 2px solid var(--accent-border);
+  white-space: pre-wrap;
+  word-break: break-word;
+}

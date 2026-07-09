@@ -1,6 +1,9 @@
-import type { Message } from '../types/chat';
-import type { LastMessage } from '../../conversations/schemas/conversation.schema';
-import type { MessageDocument } from '../../conversations/schemas/message.schema';
+import type { Citation, Message } from '../../common/types/chat';
+import type { LastMessage } from '../schemas/conversation.schema';
+import type {
+  MessageCitation,
+  MessageDocument,
+} from '../schemas/message.schema';
 
 interface MessageParts {
   id: string;
@@ -8,11 +11,21 @@ interface MessageParts {
   senderId: string;
   body: string;
   createdAt: Date;
+  citations?: MessageCitation[];
 }
 
-/** Single source of truth for the message DTO shape (ISO date, status:'sent'). */
-function buildMessageDto(parts: MessageParts): Message {
+function toCitationDto(citation: MessageCitation): Citation {
   return {
+    id: citation.id,
+    documentId: citation.documentId,
+    documentName: citation.documentName,
+    text: citation.text,
+    score: citation.score,
+  };
+}
+
+function buildMessageDto(parts: MessageParts): Message {
+  const dto: Message = {
     id: parts.id,
     conversationId: parts.conversationId,
     body: parts.body,
@@ -20,6 +33,10 @@ function buildMessageDto(parts: MessageParts): Message {
     createdAt: parts.createdAt.toISOString(),
     status: 'sent',
   };
+  if (parts.citations && parts.citations.length > 0) {
+    dto.citations = parts.citations.map(toCitationDto);
+  }
+  return dto;
 }
 
 export function toMessageDto(doc: MessageDocument): Message {
@@ -29,10 +46,10 @@ export function toMessageDto(doc: MessageDocument): Message {
     senderId: doc.senderId,
     body: doc.body,
     createdAt: doc.createdAt,
+    citations: doc.citations,
   });
 }
 
-/** Maps the embedded `lastMessage` snapshot (uses `id`, not `_id`). */
 export function toLastMessageDto(last: LastMessage): Message {
   return buildMessageDto({
     id: last.id,
