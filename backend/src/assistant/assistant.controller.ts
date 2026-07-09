@@ -13,6 +13,7 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { PublicUser } from '../common/types/chat';
 import { AssistantService } from './assistant.service';
 import { AssistantStreamQueryDto } from './dto/assistant-stream-query.dto';
+import { toolLabel } from './agent/tool-labels';
 
 @Controller('conversations/:id/assistant')
 @UseGuards(JwtAuthGuard)
@@ -29,7 +30,17 @@ export class AssistantController {
       this.assistant
         .streamReply(
           { conversationId, userId: user.id, body: dto.body },
-          (delta) => subscriber.next({ type: 'delta', data: { text: delta } }),
+          {
+            onDelta: (text) =>
+              subscriber.next({ type: 'delta', data: { text } }),
+            onToolCall: (name) =>
+              subscriber.next({
+                type: 'tool_call',
+                data: { name, label: toolLabel(name) },
+              }),
+            onToolResult: (name) =>
+              subscriber.next({ type: 'tool_result', data: { name } }),
+          },
         )
         .then((message) => {
           subscriber.next({ type: 'done', data: { message } });

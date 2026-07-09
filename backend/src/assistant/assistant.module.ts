@@ -8,6 +8,8 @@ import { OpenAiProvider } from './llm/openai.provider';
 import { ToolRegistry } from './tools/tool-registry';
 import { ListConversationsTool } from './tools/list-conversations.tool';
 import { TutorService } from './tutor/tutor.service';
+import { AgentCheckpointerService } from './agent/checkpointer';
+import { TutorAgentService } from './agent/tutor-agent.service';
 
 @Module({
   imports: [ConversationsModule, KnowledgeModule],
@@ -17,6 +19,8 @@ import { TutorService } from './tutor/tutor.service';
     ToolRegistry,
     ListConversationsTool,
     TutorService,
+    AgentCheckpointerService,
+    TutorAgentService,
     { provide: LLM_PROVIDER, useClass: OpenAiProvider },
   ],
 })
