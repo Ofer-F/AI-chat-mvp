@@ -50,6 +50,7 @@ export function MessagesListContainer({
     <MessagesListPresentational
       messages={messages}
       currentUserId={currentUserId}
+      conversationType={conversationType}
       isLoading={isLoading}
       isLoadingMore={isLoadingMore}
       error={error}

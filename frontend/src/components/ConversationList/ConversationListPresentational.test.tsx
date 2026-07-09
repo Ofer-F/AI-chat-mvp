@@ -26,9 +26,11 @@ describe("ConversationListPresentational", () => {
       <ConversationListPresentational
         conversations={[]}
         selectedConversationId={null}
+        deletingConversationId={null}
         isLoading={true}
         error={null}
         onSelectConversation={noop}
+        onDeleteConversation={noop}
       />
     );
 
@@ -42,9 +44,11 @@ describe("ConversationListPresentational", () => {
       <ConversationListPresentational
         conversations={[]}
         selectedConversationId={null}
+        deletingConversationId={null}
         isLoading={false}
         error={null}
         onSelectConversation={noop}
+        onDeleteConversation={noop}
       />
     );
 
@@ -56,9 +60,11 @@ describe("ConversationListPresentational", () => {
       <ConversationListPresentational
         conversations={[sampleConversation]}
         selectedConversationId={null}
+        deletingConversationId={null}
         isLoading={false}
         error={null}
         onSelectConversation={noop}
+        onDeleteConversation={noop}
       />
     );
 

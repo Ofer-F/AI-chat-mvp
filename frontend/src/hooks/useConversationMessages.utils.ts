@@ -98,6 +98,15 @@ export async function performAssistantStream(
           placeholderId: placeholder.id,
           textChunk: text,
         }),
+      onToolCall: (event) =>
+        dispatch({
+          type: "assistantStreamToolCall",
+          placeholderId: placeholder.id,
+          label: event.label,
+        }),
+      // The label persists until the answer streams (deltas/done clear it), so
+      // there's no separate reducer action needed on tool completion.
+      onToolResult: () => {},
       onDone: (message) =>
         dispatch({
           type: "assistantStreamCompleted",

@@ -1,12 +1,17 @@
-import type { Message } from "../../types/chat";
+import type { ConversationType, Message } from "../../types/chat";
 import { ASSISTANT_SENDER_ID } from "../../constants";
 
 interface MessageBubbleProps {
   message: Message;
   currentUserId: string;
+  conversationType: ConversationType | null;
 }
 
-export function MessageBubble({ message, currentUserId }: MessageBubbleProps) {
+export function MessageBubble({
+  message,
+  currentUserId,
+  conversationType,
+}: MessageBubbleProps) {
   const isOwnMessage = message.senderId === currentUserId;
   const isAssistant = message.senderId === ASSISTANT_SENDER_ID;
 
@@ -14,21 +19,30 @@ export function MessageBubble({ message, currentUserId }: MessageBubbleProps) {
   const rowClass = variant ? `bubble-row bubble-row--${variant}` : "bubble-row";
   const bubbleClass = variant ? `bubble bubble--${variant}` : "bubble";
 
+  const assistantLabel =
+    conversationType === "tutor" ? "AI Tutor" : "AI Assistant";
   const senderLabel = isOwnMessage
     ? "Me"
     : isAssistant
-      ? "AI Assistant"
+      ? assistantLabel
       : message.senderId;
 
   const isStreaming = isAssistant && message.status === "pending";
-  const isAwaitingFirstToken = isStreaming && message.body.length === 0;
+  const isShowingToolProgress = isStreaming && Boolean(message.toolProgress);
+  const isAwaitingFirstToken =
+    isStreaming && message.body.length === 0 && !isShowingToolProgress;
 
   return (
     <div className={rowClass}>
       <article className={bubbleClass}>
         <span className="bubble__sender">{senderLabel}</span>
 
-        {isAwaitingFirstToken ? (
+        {isShowingToolProgress ? (
+          <p className="bubble__tool-progress" aria-live="polite">
+            <span className="bubble__tool-progress-spinner" aria-hidden="true" />
+            {message.toolProgress}
+          </p>
+        ) : isAwaitingFirstToken ? (
           <p className="bubble__typing" aria-label="Assistant is typing">
             <span className="bubble__typing-dot" />
             <span className="bubble__typing-dot" />
